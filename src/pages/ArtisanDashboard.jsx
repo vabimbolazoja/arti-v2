@@ -27,6 +27,7 @@ import ArtisanSettingsView from '../components/artisan/ArtisanSettingsView';
 // Modal components
 import CancellationModal from '../components/artisan/CancellationModal';
 import ServiceCompletionModal from '../components/artisan/ServiceCompletionModal';
+import DashboardSkeleton from '../components/ui/DashboardSkeleton';
 
 const ArtisanDashboard = () => {
     const navigate = useNavigate();
@@ -51,6 +52,7 @@ const ArtisanDashboard = () => {
     const [bookingsData, setBookingsData] = useState([]);
     const [loadingBookings, setLoadingBookings] = useState(false);
     const [isSubmittingAction, setIsSubmittingAction] = useState(false);
+    const [isInitialProfileLoading, setIsInitialProfileLoading] = useState(true);
 
     // Messages State
     const [messagesViewStep, setMessagesViewStep] = useState('list');
@@ -64,6 +66,7 @@ const ArtisanDashboard = () => {
     // Settings State
     const [settingsStep, setSettingsStep] = useState('main');
     const [settingsSubStep, setSettingsSubStep] = useState('list');
+    const [subscriptionsStep, setSubscriptionsStep] = useState('overview');
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [userProfile, setUserProfile] = useState({
         firstName: '',
@@ -89,6 +92,17 @@ const ArtisanDashboard = () => {
             setCurrentView(view);
         }
     }, [searchParams]);
+
+    // Auto-navigate to subscriptions on Paystack redirect-back
+    useEffect(() => {
+        const reference = searchParams.get('reference') || searchParams.get('trxref');
+        if (reference) {
+            console.log('[ArtisanDashboard] Payment reference detected, opening subscription flow...');
+            setCurrentView('settings');
+            setSettingsStep('subscriptions');
+            setSubscriptionsStep('overview');
+        }
+    }, []);
 
     useEffect(() => {
         setSearchParams(prev => {
@@ -118,6 +132,7 @@ const ArtisanDashboard = () => {
 
     React.useEffect(() => {
         const fetchProfile = async () => {
+            setIsInitialProfileLoading(true);
             try {
                 const data = await userService.getProfile();
                 const account = data.accounts?.find(acc => acc.accountType === 'ARTISAN') || data.accounts?.[0];
@@ -132,6 +147,9 @@ const ArtisanDashboard = () => {
                     status: addr.status
                 }));
 
+                const artisanSkill = account?.artisanCategorySkills?.[0];
+                const artisanCategory = artisanSkill?.artisanCategory;
+
                 setUserProfile({
                     firstName: data.firstName || '',
                     lastName: data.lastName || '',
@@ -142,11 +160,15 @@ const ArtisanDashboard = () => {
                     addresses: mappedAddresses,
                     profilePicture: account?.profilePicture || data.profilePicture || '',
                     status: data.status || 'ACTIVE',
-                    identityVerificationStatus: data.identityVerificationStatus || 'PENDING',
-                    kycApprovalStatus: account?.kycApprovalStatus || 'NOT_STARTED'
+                    identityVerificationStatus: data.identityVerificationStatus || 'PHONE_VERIFIED',
+                    kycApprovalStatus: account?.kycApprovalStatus || 'NOT_STARTED',
+                    artisanCategoryId: artisanCategory?.id || null,
+                    artisanCategoryName: artisanCategory?.name || artisanCategory?.category?.name || 'Artisan'
                 });
             } catch (err) {
                 console.error("Failed to load artisan profile:", err);
+            } finally {
+                setIsInitialProfileLoading(false);
             }
         };
         fetchProfile();
@@ -177,6 +199,11 @@ const ArtisanDashboard = () => {
         else if (currentView === 'settings') {
             if (settingsStep === 'main') setCurrentView('dashboard');
             else if (settingsStep === 'addresses' && settingsSubStep === 'add') setSettingsSubStep('list');
+            else if (settingsStep === 'subscriptions') {
+                if (subscriptionsStep === 'overview') setSettingsStep('main');
+                else if (subscriptionsStep === 'receipt') setSubscriptionsStep('overview');
+                else setSubscriptionsStep('overview'); // Default back for plans/payment/etc
+            }
             else setSettingsStep('main');
         }
         else if (currentView === 'messages') {
@@ -254,7 +281,10 @@ const ArtisanDashboard = () => {
 
     const renderView = () => {
         switch (currentView) {
-            case 'dashboard': return <ArtisanHomeView setCurrentView={setCurrentView} userProfile={userProfile} />;
+            case 'dashboard': 
+                return isInitialProfileLoading 
+                    ? <DashboardSkeleton type="home" /> 
+                    : <ArtisanHomeView setCurrentView={setCurrentView} userProfile={userProfile} />;
             case 'bookings':
                 return bookingsViewStep === 'list' ? (
                     <ArtisanBookingsView
@@ -402,6 +432,8 @@ const ArtisanDashboard = () => {
                         setSettingsStep={setSettingsStep}
                         settingsSubStep={settingsSubStep}
                         setSettingsSubStep={setSettingsSubStep}
+                        subscriptionsStep={subscriptionsStep}
+                        setSubscriptionsStep={setSubscriptionsStep}
                         showLogoutModal={showLogoutModal}
                         setShowLogoutModal={setShowLogoutModal}
                         userProfile={userProfile}
