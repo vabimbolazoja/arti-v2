@@ -109,12 +109,13 @@ const OrderDetailsView = ({ booking, setSelectedBooking, handleCancelBooking, se
                                 const avatar = artisanObj?.appUser?.profilePicture || booking.avatar;
 
                                 setCurrentChat({
-                                    id: booking.id,
+                                    bookingId: booking.id,
                                     artisan: name,
                                     avatar: avatar,
                                     location: booking.customerAddress?.address?.address || booking.location,
                                     phoneNumber: artisanObj?.appUser?.phoneNumber || booking.artisan?.phoneNumber || ''
                                 });
+                                localStorage?.setItem('bookingId', booking.id);
                                 setCurrentView('messages');
                                 setMessagesViewStep('chat');
                                 setSelectedBooking(null);

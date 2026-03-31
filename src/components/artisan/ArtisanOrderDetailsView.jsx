@@ -14,7 +14,7 @@ export const getDetailStatusBadge = (status) => {
     }
 };
 
-const ArtisanOrderDetailsView = ({ booking, onBack, onCancel, onComplete, onAccept }) => {
+const ArtisanOrderDetailsView = ({ booking, onBack, onCancel, onComplete, onAccept, onMessageClick }) => {
     if (!booking) return null;
 
     const getActionButtons = (status) => {
@@ -71,7 +71,7 @@ const ArtisanOrderDetailsView = ({ booking, onBack, onCancel, onComplete, onAcce
                 </div>
                 <div className="flex gap-2">
                     <button className="p-2.5 bg-slate-50 rounded-xl text-blue-900 shadow-sm active:scale-95 transition-all"><Phone size={16} /></button>
-                    <button className="p-2.5 bg-slate-50 rounded-xl text-blue-900 shadow-sm active:scale-95 transition-all"><MessageSquare size={16} /></button>
+                    <button onClick={() => { if(onMessageClick) onMessageClick(booking); }} className="p-2.5 bg-slate-50 rounded-xl text-blue-900 shadow-sm active:scale-95 transition-all"><MessageSquare size={16} /></button>
                 </div>
             </div>
 

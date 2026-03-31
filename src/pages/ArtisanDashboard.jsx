@@ -113,7 +113,7 @@ const ArtisanDashboard = () => {
     }, [currentView, setSearchParams]);
 
     React.useEffect(() => {
-        if (currentView === 'bookings') {
+        if (currentView === 'bookings' || currentView === 'messages') {
             fetchBookings();
         }
     }, [currentView]);
@@ -163,7 +163,8 @@ const ArtisanDashboard = () => {
                     identityVerificationStatus: data.identityVerificationStatus || 'PHONE_VERIFIED',
                     kycApprovalStatus: account?.kycApprovalStatus || 'NOT_STARTED',
                     artisanCategoryId: artisanCategory?.id || null,
-                    artisanCategoryName: artisanCategory?.name || artisanCategory?.category?.name || 'Artisan'
+                    artisanCategoryName: artisanCategory?.name || artisanCategory?.category?.name || 'Artisan',
+                    id: data.id || account?.id
                 });
             } catch (err) {
                 console.error("Failed to load artisan profile:", err);
@@ -279,6 +280,28 @@ const ArtisanDashboard = () => {
         }
     };
 
+    const handleMessageClick = (booking) => {
+        const customer = booking.customer;
+        const name = customer?.appUser 
+            ? `${customer.appUser.firstName || ''} ${customer.appUser.lastName || ''}`.trim() 
+            : (customer?.name || 'Customer');
+            
+        setCurrentChat({
+            bookingId: booking.id,
+            customer: name,
+            avatar: customer?.profilePicture || customer?.appUser?.profilePicture || booking.avatar,
+            location: booking.customerAddress?.address?.address || booking.location,
+            phoneNumber: customer?.appUser?.phoneNumber || customer?.phoneNumber || ''
+        });
+        localStorage?.setItem('bookingId', booking.id);
+        setCurrentView('messages');
+        setMessagesViewStep('chat');
+        if (selectedBooking) {
+            setBookingsViewStep('list');
+            setSelectedBooking(null);
+        }
+    };
+
     const renderView = () => {
         switch (currentView) {
             case 'dashboard': 
@@ -296,6 +319,7 @@ const ArtisanDashboard = () => {
                         onCancel={handleCancelClick}
                         onComplete={handleCompleteClick}
                         onAccept={handleAcceptClick}
+                        onMessageClick={handleMessageClick}
                         setCurrentView={setCurrentView}
                     />
                 ) : (
@@ -305,6 +329,7 @@ const ArtisanDashboard = () => {
                         onCancel={handleCancelClick}
                         onComplete={handleCompleteClick}
                         onAccept={handleAcceptClick}
+                        onMessageClick={handleMessageClick}
                     />
                 );
             case 'cancel-reason':
@@ -413,6 +438,8 @@ const ArtisanDashboard = () => {
                         selectedReportOption={selectedReportOption}
                         setSelectedReportOption={setSelectedReportOption}
                         setCurrentView={setCurrentView}
+                        bookingsData={bookingsData}
+                        userProfile={userProfile}
                     />
                 );
             case 'notifications':

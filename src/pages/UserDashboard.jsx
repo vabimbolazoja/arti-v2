@@ -19,8 +19,7 @@ import {
     POPULAR_SERVICES,
     BANNERS,
     FAQ_DATA,
-    NOTIFICATIONS,
-    MESSAGES
+    NOTIFICATIONS
 } from '../constants/userData';
 
 // Components
@@ -58,7 +57,7 @@ const UserDashboard = () => {
     const [selectedNotification, setSelectedNotification] = useState(null);
 
     // Messages & Payment State
-    const [messagesViewStep, setMessagesViewStep] = useState('list');
+    const [messagesViewStep, setMessagesViewStep] = useState('chat');
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
     const [cancelReason, setCancelReason] = useState('');
     const [cancelBookingId, setCancelBookingId] = useState(null);
@@ -286,7 +285,7 @@ const UserDashboard = () => {
 
     useEffect(() => {
         const fetchBookings = async () => {
-            if (currentView !== 'bookings') return;
+            if (currentView !== 'bookings' && currentView !== 'messages') return;
             setLoadingBookings(true);
             setBookingsData([]); // Clear state as requested by user
             try {
