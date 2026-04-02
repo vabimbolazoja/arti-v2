@@ -24,6 +24,9 @@ import ArtisanMessagesView from '../components/artisan/ArtisanMessagesView';
 import ArtisanNotificationsView from '../components/artisan/ArtisanNotificationsView';
 import ArtisanSettingsView from '../components/artisan/ArtisanSettingsView';
 
+// Logout Modal
+import LogoutModal from '../components/artisan/LogoutModal';
+
 // Modal components
 import CancellationModal from '../components/artisan/CancellationModal';
 import ServiceCompletionModal from '../components/artisan/ServiceCompletionModal';
@@ -307,7 +310,7 @@ const ArtisanDashboard = () => {
             case 'dashboard': 
                 return isInitialProfileLoading 
                     ? <DashboardSkeleton type="home" /> 
-                    : <ArtisanHomeView setCurrentView={setCurrentView} userProfile={userProfile} />;
+                    : <ArtisanHomeView setCurrentView={setCurrentView} setSettingsStep={setSettingsStep} userProfile={userProfile} />;
             case 'bookings':
                 return bookingsViewStep === 'list' ? (
                     <ArtisanBookingsView
@@ -461,8 +464,6 @@ const ArtisanDashboard = () => {
                         setSettingsSubStep={setSettingsSubStep}
                         subscriptionsStep={subscriptionsStep}
                         setSubscriptionsStep={setSubscriptionsStep}
-                        showLogoutModal={showLogoutModal}
-                        setShowLogoutModal={setShowLogoutModal}
                         userProfile={userProfile}
                         setUserProfile={setUserProfile}
                         faqCategory={faqCategory}
@@ -504,6 +505,7 @@ const ArtisanDashboard = () => {
                 setBookingsViewStep={setBookingsViewStep}
                 setNotificationsViewStep={setNotificationsViewStep}
                 setMessagesViewStep={setMessagesViewStep}
+                setShowLogoutModal={setShowLogoutModal}
             />
 
             <Sidebar
@@ -562,6 +564,13 @@ const ArtisanDashboard = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {showLogoutModal && (
+                <LogoutModal 
+                    showLogoutModal={showLogoutModal} 
+                    setShowLogoutModal={setShowLogoutModal} 
+                    onLogout={handleLogout} 
+                />
             )}
         </div>
     );
